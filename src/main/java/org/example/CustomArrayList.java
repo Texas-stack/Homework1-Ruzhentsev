@@ -182,7 +182,6 @@ public class CustomArrayList {
                     System.out.println("Список отсортирован.");
                     break;
                 case 8:
-                    //Здесь вызови функцию quicksort
                     customList.quickSort();
                     System.out.println("Список отсортирован при помощи quicksort.");
                     break;
