@@ -1,4 +1,5 @@
 package org.example;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -9,7 +10,9 @@ import java.util.Scanner;
  */
 public class CustomArrayList {
 
-    /** Список элементов */
+    /**
+     * Список элементов
+     */
     public final ArrayList<Object> list;
 
     /**
@@ -98,13 +101,14 @@ public class CustomArrayList {
         quickSort(0, list.size() - 1);
     }
 
+    @SuppressWarnings("unchecked")
     public void quickSort(int low, int high) {
         if (low < high) {
             Object pivot = list.get(high);
             int i = low - 1;
 
             for (int j = low; j < high; j++) {
-                if (((Comparable) list.get(j)).compareTo(pivot) <= 0) {
+                if (((Comparable<Object>) list.get(j)).compareTo(pivot) <= 0) {
                     i++;
                     Collections.swap(list, i, j);
                 }
@@ -116,8 +120,6 @@ public class CustomArrayList {
             quickSort(pi + 1, high);
         }
     }
-
-
 
 
     /**
