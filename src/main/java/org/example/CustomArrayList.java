@@ -1,201 +1,206 @@
 package org.example;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Scanner;
+import java.util.*;
 
 /**
- * Класс, представляющий список.
+ * Реализация списка CustomArrayList с обобщенными типами.
+ *
+ * @param <T> тип элементов в списке
  */
-public class CustomArrayList {
+public class CustomArrayList<T> {
+    private Object[] array; // Внутренний массив для хранения элементов
+    private int size; // Текущее количество элементов в списке
+    private static final int DEFAULT_CAPACITY = 10; // Начальная емкость списка по умолчанию
 
     /**
-     * Список элементов
-     */
-    public final ArrayList<Object> list;
-
-    /**
-     * Конструктор по умолчанию, инициализирует пустой список.
+     * Создает новый пустой CustomArrayList с емкостью по умолчанию.
      */
     public CustomArrayList() {
-        this.list = new ArrayList<>();
+        this.array = new Object[DEFAULT_CAPACITY];
+        this.size = 0;
     }
 
     /**
-     * Добавляет элемент в список.
+     * Добавляет элемент в конец списка.
      *
-     * @param element Элемент для добавления.
+     * @param element элемент, который нужно добавить в список
      */
-    public void add(Object element) {
-        list.add(element);
+    public void add(T element) {
+        if (size == array.length) {
+            increaseCapacity();
+        }
+        array[size++] = element;
     }
 
     /**
-     * Добавляет несколько элементов в список.
+     * Добавляет элемент по указанному индексу в список.
      *
-     * @param elements Строка с элементами, разделенными запятой.
+     * @param index   индекс, по которому нужно добавить элемент
+     * @param element элемент, который нужно добавить в список
+     * @throws IndexOutOfBoundsException если индекс находится вне допустимого диапазона
      */
-    public void addMultipleElements(String elements) {
-        String[] elementsArray = elements.split(",\\s*");
-        Collections.addAll(list, elementsArray);
+    public void add(int index, T element) {
+        if (index < 0 || index > size) {
+            throw new IndexOutOfBoundsException("Индекс: " + index + ", Размер: " + size);
+        }
+        if (size == array.length) {
+            increaseCapacity();
+        }
+        System.arraycopy(array, index, array, index + 1, size - index);
+        array[index] = element;
+        size++;
     }
 
     /**
-     * Добавляет элемент по указанному индексу.
+     * Возвращает элемент по указанному индексу.
      *
-     * @param index   Индекс для добавления.
-     * @param element Элемент для добавления.
+     * @param index индекс элемента, который нужно получить
+     * @return элемент по указанному индексу
+     * @throws IndexOutOfBoundsException если индекс находится вне допустимого диапазона
      */
-    public void add(int index, Object element) {
-        list.add(index, element);
+    @SuppressWarnings("unchecked")
+    public T get(int index) {
+        if (index < 0 || index >= size) {
+            throw new IndexOutOfBoundsException("Индекс: " + index + ", Размер: " + size);
+        }
+        return (T) array[index];
     }
 
     /**
-     * Получает элемент по индексу.
+     * Удаляет элемент по указанному индексу.
      *
-     * @param index Индекс элемента.
-     * @return Элемент по заданному индексу.
-     */
-    public Object get(int index) {
-        return list.get(index);
-    }
-
-    /**
-     * Удаляет элемент по индексу.
-     *
-     * @param index Индекс элемента для удаления.
+     * @param index индекс элемента, который нужно удалить
+     * @throws IndexOutOfBoundsException если индекс находится вне допустимого диапазона
      */
     public void remove(int index) {
-        list.remove(index);
+        if (index < 0 || index >= size) {
+            throw new IndexOutOfBoundsException("Индекс: " + index + ", Размер: " + size);
+        }
+        int numMoved = size - index - 1;
+        if (numMoved > 0) {
+            System.arraycopy(array, index + 1, array, index, numMoved);
+        }
+        array[--size] = null;
     }
 
     /**
-     * Очищает весь список.
+     * Очищает список, удаляя все элементы.
      */
     public void clear() {
-        list.clear();
+        Arrays.fill(array, 0, size, null);
+        size = 0;
     }
 
     /**
-     * Метод для сортировки через компаратор
+     * Преобразует массив элементов в массив и возвращает его.
+     *
+     * @return массив элементов
      */
-    public void sort() {
-        list.sort(Comparator.comparing(Object::toString));
-    }
-
-    /**
-     * Выводит список элементов на экран.
-     */
-    public void displayList() {
-        System.out.println("Текущий список:");
-        for (Object element : list) {
-            System.out.println(element);
-        }
-    }
-
-    /**
-     * Ниже методы для быстрой сортировки списка.
-     */
-    public void quickSort() {
-        quickSort(0, list.size() - 1);
-    }
-
     @SuppressWarnings("unchecked")
-    public void quickSort(int low, int high) {
-        if (low < high) {
-            Object pivot = list.get(high);
-            int i = low - 1;
+    public T[] toArray() {
+        return (T[]) Arrays.copyOf(array, size);
+    }
 
-            for (int j = low; j < high; j++) {
-                if (((Comparable<Object>) list.get(j)).compareTo(pivot) <= 0) {
-                    i++;
-                    Collections.swap(list, i, j);
-                }
-            }
-            Collections.swap(list, i + 1, high);
-
-            int pi = i + 1;
-            quickSort(low, pi - 1);
-            quickSort(pi + 1, high);
+    /**
+     * Сортирует элементы в списке в порядке возрастания с использованием переданного компаратора.
+     *
+     * @param comparator компаратор для сортировки элементов
+     */
+    public void sortWithComparator(Comparator<? super T> comparator) {
+        List<T> list = new ArrayList<>(Arrays.asList(this.toArray()));
+        list.sort(comparator);
+        for (int i = 0; i < list.size(); i++) {
+            this.set(i, list.get(i));
         }
     }
 
+    /**
+     * Увеличивает ёмкость массива
+     */
+    private void increaseCapacity() {
+        int newCapacity = array.length * 2;
+        Object[] newArray = new Object[newCapacity];
+        System.arraycopy(array, 0, newArray, 0, size);
+        array = newArray;
+    }
 
     /**
-     * Основной класс main, где находится userMenu и вызовы всех методов.
+     * Возвращает текущее количество элементов в списке.
+     *
+     * @return количество элементов в списке
      */
-    public static void main(String[] args) {
-        CustomArrayList customList = new CustomArrayList();
-        Scanner scanner = new Scanner(System.in);
+    public int size() {
+        return size;
+    }
 
-        boolean running = true;
-        while (running) {
-            System.out.println("Выберите опцию:");
-            System.out.println("1. Добавить элемент");
-            System.out.println("2. Добавить сразу несколько элементов (через запятую!)");
-            System.out.println("3. Добавить элемент по индексу");
-            System.out.println("4. Получить элемент по индексу");
-            System.out.println("5. Удалить элемент по индексу");
-            System.out.println("6. Очистить список");
-            System.out.println("7. Отсортировать список");
-            System.out.println("8. Отсортировать список при помощи quicksort");
-            System.out.println("9. Вывести список");
-            System.out.println("0. Выйти");
+    /**
+     * Быстрая сортировка элементов в списке с использованием переданного компаратора.
+     *
+     * @param comparator компаратор для сортировки элементов
+     */
+    public void quickSort(Comparator<T> comparator) {
+        quickSortHelper(0, size - 1, comparator);
+    }
 
-            int choice = Integer.parseInt(scanner.nextLine());
+    /**
+     * Вспомогательный метод для реализации быстрой сортировки.
+     */
+    private void quickSortHelper(int low, int high, Comparator<T> comparator) {
+        if (low < high) {
+            int pivot = partition(low, high, comparator);
+            quickSortHelper(low, pivot - 1, comparator);
+            quickSortHelper(pivot + 1, high, comparator);
+        }
+    }
 
-            switch (choice) {
-                case 1:
-                    System.out.print("Введите элемент для добавления: ");
-                    String newElement = scanner.nextLine();
-                    customList.add(newElement);
-                    break;
-                case 2:
-                    System.out.print("Введите элементы для добавления через запятую: ");
-                    String multipleElements = scanner.nextLine();
-                    customList.addMultipleElements(multipleElements);
-                    break;
-                case 3:
-                    System.out.print("Введите индекс для добавления: ");
-                    int index = Integer.parseInt(scanner.nextLine());
-                    System.out.print("Введите элемент для добавления: ");
-                    String newElementAtIndex = scanner.nextLine();
-                    customList.add(index, newElementAtIndex);
-                    break;
-                case 4:
-                    System.out.print("Введите индекс для получения элемента: ");
-                    int getIndex = Integer.parseInt(scanner.nextLine());
-                    System.out.println("Элемент: " + customList.get(getIndex));
-                    break;
-                case 5:
-                    System.out.print("Введите индекс для удаления элемента: ");
-                    int removeIndex = Integer.parseInt(scanner.nextLine());
-                    customList.remove(removeIndex);
-                    break;
-                case 6:
-                    customList.clear();
-                    System.out.println("Список очищен.");
-                    break;
-                case 7:
-                    customList.sort();
-                    System.out.println("Список отсортирован.");
-                    break;
-                case 8:
-                    customList.quickSort();
-                    System.out.println("Список отсортирован при помощи quicksort.");
-                    break;
-                case 9:
-                    customList.displayList();
-                    break;
-                case 0:
-                    running = false;
-                    break;
-                default:
-                    System.out.println("Некорректная опция. Попробуйте снова.");
+    /**
+     * Разделительный метод для быстрой сортировки.
+     */
+    @SuppressWarnings("unchecked")
+    private int partition(int low, int high, Comparator<T> comparator) {
+        T pivot = (T) array[high];
+        int i = low - 1;
+        for (int j = low; j < high; j++) {
+            if (comparator.compare((T) array[j], pivot) <= 0) {
+                i++;
+                swap(i, j);
             }
         }
+        swap(i + 1, high);
+        return i + 1;
+    }
 
-        System.out.println("Работа программы завершена.");
+    /**
+     * Меняет местами два элемента в массиве.
+     */
+    private void swap(int i, int j) {
+        Object temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+
+    /**
+     * Проверяет, пуст ли список.
+     *
+     * @return true, если список пуст, иначе false
+     */
+    public boolean isEmpty() {
+        return size == 0;
+    }
+
+    /**
+     * Заменяет элемент в списке по указанному индексу новым элементом.
+     *
+     * @param index   индекс элемента, который нужно заменить
+     * @param element новый элемент для замены
+     * @throws IndexOutOfBoundsException если индекс находится вне допустимого диапазона
+     */
+    public void set(int index, T element) {
+        if (index < 0 || index >= this.size()) {
+            throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + this.size());
+        }
+        T[] elements = this.toArray();
+        elements[index] = element;
+        this.array = elements;
     }
 }
